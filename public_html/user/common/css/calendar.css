@@ -1,0 +1,70 @@
+/**
+ * カレンダー
+ */
+ #calendars {
+}
+
+#calendars .calendar {
+	width: 300px;
+	padding: 15px;
+	float: left;
+}
+
+#calendars .calendar dt {
+	font-size: 18px;
+	text-align: center;
+}
+
+#calendars .calendar table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#calendars .calendar th {
+	text-align: center;
+}
+
+#content .content_inr .box #calendars .calendar td {
+	text-align: center;
+	width: 25px;
+	height: 30px;
+	padding: 0px;
+}
+#calendars .calendar td a {
+	display: block;
+	width: 100%;
+	line-height: 30px;
+    text-align: center;
+}
+
+#calendars .calendar td.out_month {
+	background-color: #ccc;
+}
+
+#calendars .calendar td.status_0 {
+	background-color: transparent;
+}
+#calendars .calendar td.status_1 {
+	background-color: #ff5d5d;
+}
+#calendars .calendar td.status_1 a {
+    color: #FFF;
+}
+
+#calendars .calendar td.status_2 {
+	background-color: #e4e46a;
+}
+
+/*---------------------------------------------------------------------------*/
+#calendars {
+	margin: 0 auto;
+	width: 1000px;
+}
+#calendars .calendar {
+	box-sizing: border-box;
+	display: inline-block;
+	float: none;
+	padding: 15px;
+	vertical-align: top;
+	width: 246px;
+}
