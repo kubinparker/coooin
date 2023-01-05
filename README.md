@@ -1,0 +1,2 @@
+# coooin
+makecoin
