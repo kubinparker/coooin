@@ -4,16 +4,15 @@ namespace App\Controller\UserAdmin;
 
 use App\Controller\AppController as BaseController;
 use Cake\Event\EventInterface;
-use Cake\ORM\TableRegistry;
 use App\Model\Entity\Info;
 use App\Lib\Util;
-use Cake\I18n\I18n;
 use Cake\Datasource\ConnectionManager;
 
 class AppController extends BaseController
 {
 
-    public function initialize() : void
+
+    public function initialize(): void
     {
 
         parent::initialize();
@@ -22,41 +21,44 @@ class AppController extends BaseController
             'Paginator' => ['templates' => 'paginator-user']
         ]);
         $this->SiteConfigs = $this->getTableLocator()->get('SiteConfigs');
-        $this->Session->write(['current_site_id' => 1]);
+        // $this->Session->write(['current_site_id' => 1]);
 
         $this->loadComponent('AdminMenu');
-
-
     }
+
+
     public function beforeFilter(EventInterface $event)
     {
-
     }
 
-    protected function _lists($cond = array(), $options = array()) {
-        
+
+    protected function _lists($cond = array(), $options = array())
+    {
+
         $primary_key = $this->{$this->modelName}->getPrimaryKey();
         if (is_array($primary_key)) {
             $primary_key = 'id';
         }
 
-        $this->paginate = array_merge(array(
-            'order' => $this->modelName . '.' . $primary_key . ' DESC',
-            'limit' => 10,
-            'contain' => [],
-            'paramType' => 'querystring',
-            'url' => [
-                'sort' => null,
-                'direction' => null
-            ],
-            'rand' => null,
-            'union' => null,
-            'sql_debug' => false,
-            'findMethod' => 'all',
-            'query_callback' => null,
-        ),
-            $options);
-        if (!array_key_exists('contain',$options)) {
+        $this->paginate = array_merge(
+            array(
+                'order' => $this->modelName . '.' . $primary_key . ' DESC',
+                'limit' => 10,
+                'contain' => [],
+                'paramType' => 'querystring',
+                'url' => [
+                    'sort' => null,
+                    'direction' => null
+                ],
+                'rand' => null,
+                'union' => null,
+                'sql_debug' => false,
+                'findMethod' => 'all',
+                'query_callback' => null,
+            ),
+            $options
+        );
+        if (!array_key_exists('contain', $options)) {
             $options['contain'] = [];
         }
         if (!array_key_exists('findMethod', $options)) {
@@ -65,8 +67,10 @@ class AppController extends BaseController
 
         try {
             if ($this->paginate['limit'] === null) {
-                unset($options['limit'],
-                $options['paramType']);
+                unset(
+                    $options['limit'],
+                    $options['paramType']
+                );
                 if (!empty($options['rand'])) {
                     $options['limit'] = $options['rand'];
                     $options['order'] = 'rand()';
@@ -92,21 +96,20 @@ class AppController extends BaseController
                     $query = $options['query_callback']($query);
                 }
                 $data_query = $query->all();
-
             } else {
                 $query = $this->{$this->modelName}->find($options['findMethod'])->where($cond);
                 if (!empty($options['query_callback'])) {
                     $query = $options['query_callback']($query);
                 }
                 $data_query = $this->paginate($query);
-
             }
             $datas = $data_query->toArray();
             $count['total'] = $data_query->count();
-
-        } catch (NotFoundException $e)  {
-            if (!empty($this->request->query['page'])
-                && 1 < $this->request->query['page']) {
+        } catch (NotFoundException $e) {
+            if (
+                !empty($this->request->query['page'])
+                && 1 < $this->request->query['page']
+            ) {
                 $this->redirect(array('action' => $this->request->action));
             }
         }
@@ -115,27 +118,32 @@ class AppController extends BaseController
             $q->contain($options['contain']);
         }
         $numrows = $q->count();
-        
+
         $this->set(compact('datas', 'data_query', 'numrows'));
     }
 
-    protected function _edit($id = 0, $option = array()) {
-        $option = array_merge(array('saveAll' => false,
-                                    'saveMany' => false,
-                                    'create' => null,
-                                    'callback' => null,
-                                    'redirect' => array('action' => 'index'),
-                                    'contain' => [],
-                                    'success_message' => '保存しました',
-                                    'validate' => 'default',
-                                    'associated' => null,
-                                    'append_validate' => null,
-                                    'get_callback' => null,
-                                    'error_get_callback' => null,
-                                    'beforeFindFilter' => null,
-                                    'is_save' => true
-                                ),
-                              $option);
+
+    protected function _edit($id = 0, $option = array())
+    {
+        $option = array_merge(
+            array(
+                'saveAll' => false,
+                'saveMany' => false,
+                'create' => null,
+                'callback' => null,
+                'redirect' => array('action' => 'index'),
+                'contain' => [],
+                'success_message' => '保存しました',
+                'validate' => 'default',
+                'associated' => null,
+                'append_validate' => null,
+                'get_callback' => null,
+                'error_get_callback' => null,
+                'beforeFindFilter' => null,
+                'is_save' => true
+            ),
+            $option
+        );
         extract($option);
 
         $primary_key = $this->{$this->modelName}->getPrimaryKey();
@@ -146,10 +154,10 @@ class AppController extends BaseController
 
         $isValid = true;
 
-        if ($this->request->is(array('post', 'put'))
+        if (
+            $this->request->is(array('post', 'put'))
             && $this->request->getData() //post_max_sizeを越えた場合の対応(空になる)
-            )
-        {
+        ) {
 
 
             $entity_options = [];
@@ -170,13 +178,13 @@ class AppController extends BaseController
                     $vals = $this->{$this->modelName}->useHierarchization;
                     $_model = $vals['sequence_model'];
                     if (!empty($entity[$vals['contents_table']])) {
-                    // if (array_key_exists($vals['contents_table'], $entity)) {
+                        // if (array_key_exists($vals['contents_table'], $entity)) {
                         foreach ($entity[$vals['contents_table']] as $k => $v) {
                             if (empty($v['id'])) {
                                 $entity[$vals['contents_table']][$k]['id'] = null;
                             }
                             if ($v[$vals['sequence_id_name']]) {
-                                $seq = $this->{$_model}->find()->where([$_model.'.id' => $v[$vals['sequence_id_name']]])->first();
+                                $seq = $this->{$_model}->find()->where([$_model . '.id' => $v[$vals['sequence_id_name']]])->first();
                                 $entity[$vals['contents_table']][$k][$vals['sequence_table']] = $seq;
                             }
                         }
@@ -187,16 +195,16 @@ class AppController extends BaseController
                 // TODO::
                 // $this->redirect($this->referer());
 
-//                $request = $this->getRequest()->withParsedBody($this->{$this->modelName}->toFormData($entity));
+                //                $request = $this->getRequest()->withParsedBody($this->{$this->modelName}->toFormData($entity));
 
-//                $this->setRequest($data);
+                //                $this->setRequest($data);
                 $this->set('data', $data);
                 $isValid = false;
             }
 
             // 追加項目バリデーション
             if ($append_validate) {
-                $isValid = $append_validate($isValid,$entity);
+                $isValid = $append_validate($isValid, $entity);
             }
             if ($isValid) {
                 $r = false;
@@ -221,6 +229,7 @@ class AppController extends BaseController
                 } catch (\Exception $e) {
                     $r = false;
                     $cn->rollback();
+
                     debug($e);
                 }
                 if ($r) {
@@ -229,7 +238,6 @@ class AppController extends BaseController
                         return $this->redirect($redirect);
                     }
                 }
-
             } else {
                 $data = $this->request->getData();
                 if (!is_null($error_get_callback)) {
@@ -246,7 +254,7 @@ class AppController extends BaseController
             }
         } else {
 
-            $query = $this->{$this->modelName}->find()->where([$this->modelName.'.'.$primary_key => $id])->contain($contain);
+            $query = $this->{$this->modelName}->find()->where([$this->modelName . '.' . $primary_key => $id])->contain($contain);
             if ($option['beforeFindFilter']) {
                 $query = $option['beforeFindFilter']($query);
             }
@@ -293,20 +301,23 @@ class AppController extends BaseController
         return $isValid;
     }
 
-    public function _detail($id, $option = []) {
-        $option = array_merge(array(
-                                    'callback' => null,
-                                    'redirect' => array('action' => 'index'),
-                                    'contain' => []
-                                ),
-                              $option);
+    public function _detail($id, $option = [])
+    {
+        $option = array_merge(
+            array(
+                'callback' => null,
+                'redirect' => array('action' => 'index'),
+                'contain' => []
+            ),
+            $option
+        );
         extract($option);
 
         $primary_key = $this->{$this->modelName}->getPrimaryKey();
 
 
 
-        $query = $this->{$this->modelName}->find()->where([$this->modelName.'.'.$primary_key => $id])->contain($contain);
+        $query = $this->{$this->modelName}->find()->where([$this->modelName . '.' . $primary_key => $id])->contain($contain);
 
         if (!$query->isEmpty()) {
             $entity = $query->first();
@@ -323,7 +334,7 @@ class AppController extends BaseController
             }
         }
 
-        
+
         $this->set('data', $this->request->getData());
 
 
@@ -336,8 +347,10 @@ class AppController extends BaseController
         $this->set('entity', $entity);
     }
 
-    public function checkLogin($role = ''){
-        if ($role == 'shop') {
+
+    public function checkLogin($role = '')
+    {
+        if ($role == SHOP) {
             if ($this->isShopLogin()) {
                 return parent::checkShopLogin();
             }
@@ -345,18 +358,20 @@ class AppController extends BaseController
         return parent::checkUserLogin();
     }
 
+
     /**
      * 順番並び替え
      * */
-     protected function _position($id, $pos, $options=array()) {
+    protected function _position($id, $pos, $options = array())
+    {
         $options = array_merge(array(
             'redirect' => array('action' => 'index', '#' => 'content-' . $id)
-            ), $options);
+        ), $options);
         extract($options);
-        
+
         $primary_key = $this->{$this->modelName}->getPrimaryKey();
-        $query = $this->{$this->modelName}->find()->where([$this->modelName.'.'.$primary_key => $id]);
-        
+        $query = $this->{$this->modelName}->find()->where([$this->modelName . '.' . $primary_key => $id]);
+
         if (!$query->isEmpty()) {
             // $entity = $this->{$this->modelName}->get($id);
             $this->{$this->modelName}->movePosition($id, $pos);
@@ -369,25 +384,27 @@ class AppController extends BaseController
 
     }
 
+
     /**
      * 掲載中/下書き トグル
      * */
-     protected function _enable($id, $options = array()) {
+    protected function _enable($id, $options = array())
+    {
         $options = array_merge(array(
             'redirect' => array('action' => 'index', '#' => 'content-' . $id),
             'column' => 'status',
             'status_true' => 'publish',
             'status_false' => 'draft'
-            ), $options);
+        ), $options);
         extract($options);
         $r = false;
 
         $primary_key = $this->{$this->modelName}->getPrimaryKey();
-        $query = $this->{$this->modelName}->find()->where([$this->modelName.'.'.$primary_key => $id]);
+        $query = $this->{$this->modelName}->find()->where([$this->modelName . '.' . $primary_key => $id]);
 
         if (!$query->isEmpty()) {
             $entity = $query->first();
-            $status = ($entity->get($column) == $status_true)? $status_false: $status_true;
+            $status = ($entity->get($column) == $status_true) ? $status_false : $status_true;
             $r = $this->{$this->modelName}->updateAll(array($column => $status), array($this->{$this->modelName}->getPrimaryKey() => $id));
         }
         if ($redirect) {
@@ -397,37 +414,42 @@ class AppController extends BaseController
         if ($r) {
             return $status;
         }
-        return ($status == $status_true)? $status_false: $status_true;
+        return ($status == $status_true) ? $status_false : $status_true;
     }
+
 
     /**
      * ファイル/記事削除
      *
      * */
-     protected function _delete($id, $type, $columns = null, $option = array()) {
-        $option = array_merge(array('redirect' => null),
-                              $option);
+    protected function _delete($id, $type, $columns = null, $option = array())
+    {
+        $option = array_merge(
+            array('redirect' => null),
+            $option
+        );
         extract($option);
 
         $primary_key = $this->{$this->modelName}->getPrimaryKey();
-        $query = $this->{$this->modelName}->find()->where([$this->modelName.'.'.$primary_key => $id]);
+        $query = $this->{$this->modelName}->find()->where([$this->modelName . '.' . $primary_key => $id]);
 
         if (!$query->isEmpty() && in_array($type, array('image', 'file', 'content'))) {
             $entity = $query->first();
             $data = $entity->toArray();
 
             if ($type === 'image' && isset($this->{$this->modelName}->attaches['images'][$columns])) {
-               if (!empty($data['attaches'][$columns])) {
-                    foreach($data['attaches'][$columns] as $_) {
+                if (!empty($data['attaches'][$columns])) {
+                    foreach ($data['attaches'][$columns] as $_) {
                         $_file = WWW_ROOT . $_;
                         if (is_file($_file)) {
                             @unlink($_file);
                         }
                     }
                 }
-                $this->{$this->modelName}->updateAll(array($columns => ''),
-                                                     array($this->modelName.'.'.$this->{$this->modelName}->getPrimaryKey() => $id));
-
+                $this->{$this->modelName}->updateAll(
+                    array($columns => ''),
+                    array($this->modelName . '.' . $this->{$this->modelName}->getPrimaryKey() => $id)
+                );
             } else if ($type === 'file' && isset($this->{$this->modelName}->attaches['files'][$columns])) {
                 if (!empty($data['attaches'][$columns][0])) {
                     $_file = WWW_ROOT . $data['attaches'][$columns][0];
@@ -435,19 +457,21 @@ class AppController extends BaseController
                         @unlink($_file);
                     }
 
-                    $this->{$this->modelName}->updateAll(array($columns => '',
-                                                               $columns.'_name' => '',
-                                                               $columns.'_size' => 0,
-                                                               ),
-                                                         array($this->modelName . '.' . $this->{$this->modelName}->getPrimaryKey() => $id));
+                    $this->{$this->modelName}->updateAll(
+                        array(
+                            $columns => '',
+                            $columns . '_name' => '',
+                            $columns . '_size' => 0,
+                        ),
+                        array($this->modelName . '.' . $this->{$this->modelName}->getPrimaryKey() => $id)
+                    );
                 }
-
             } else if ($type === 'content') {
                 $image_index = array_keys($this->{$this->modelName}->attaches['images']);
                 $file_index = array_keys($this->{$this->modelName}->attaches['files']);
 
-                foreach($image_index as $idx) {
-                    foreach($data['attaches'][$idx] as $_) {
+                foreach ($image_index as $idx) {
+                    foreach ($data['attaches'][$idx] as $_) {
                         $_file = WWW_ROOT . $_;
                         if (is_file($_file)) {
                             @unlink($_file);
@@ -455,7 +479,7 @@ class AppController extends BaseController
                     }
                 }
 
-                foreach($file_index as $idx) {
+                foreach ($file_index as $idx) {
                     $_file = WWW_ROOT . $data['attaches'][$idx][0];
                     if (is_file($_file)) {
                         @unlink($_file);
@@ -483,23 +507,31 @@ class AppController extends BaseController
         return;
     }
 
+
     /**
      * 中身は各コントローラに書く
      * @param  [type] $info_id [description]
      * @return [type]          [description]
      */
-    protected function _htmlUpdate($info_id) {
-
+    protected function _htmlUpdate($info_id)
+    {
     }
 
-    protected function getUsername() {
+
+    protected function getUsername()
+    {
         return $this->Session->read('data.username');
     }
-    public function getUserId($role = 'admin') {
+
+
+    public function getUserId($role = )
+    {
         return $this->isUserLogin($role);
     }
 
-    public function array_asso_chunk($datas, $num) {
+
+    public function array_asso_chunk($datas, $num)
+    {
         $res = [];
         $max = count($datas);
 
@@ -508,7 +540,7 @@ class AppController extends BaseController
         foreach ($datas as $k => $v) {
             $res[$i][$k] = $v;
             $count++;
-            if (!($count%$num)) {
+            if (!($count % $num)) {
                 $i++;
             }
         }
@@ -516,103 +548,83 @@ class AppController extends BaseController
         return $res;
     }
 
-    public function setCommon() {
 
-
+    public function setCommon()
+    {
         $user_site_list = $this->_getUserSite();
         $current_site_id = $this->Session->read('current_site_id');
-
         $this->set(compact('user_site_list', 'current_site_id'));
-
     }
 
-    public function _getUserSite($user_id=0) {
 
-        // $user_sites = $this->UserSites->find()
-        //                               ->where(['UserSites.user_id' => $user_id])
-        //                               ->contain(['SiteConfigs'])
-        //                               ->all();
+    public function _getUserSite($user_id = 0)
+    {
+        $user_id = $user_id == 0 ? $this->Session->read('useradminId') : $user_id;
 
-        $user_site_list = $this->SiteConfigs->find('list', ['keyField' => 'id', 'valueField' => 'site_name'])->where(['SiteConfigs.id' => 1])->toArray();
+        $user_sites = $this->UseradminSites->find()
+            ->where(['UseradminSites.useradmin_id' => $user_id])
+            ->contain(['SiteConfigs', 'Useradmins'])
+            ->all()
+            ->toArray();
 
-        // $user_site_list = [];
-        // if (!empty($user_sites)) {
-        //     foreach ($user_sites as $site) {
-        //         $user_site_list[$site->site_config->id] = $site->site_config->site_name;
-        //     }
-        // }
-        // if (!$this->Session->read('current_site_id')) {
-        //     foreach ($user_site_list as $site_id => $config) {
-        //         $this->Session->write('current_site_id', $site_id);
-        //         if (!$this->Session->read('current_site_slug')) {
-        //             foreach ($user_sites as $site) {
-        //                 if ($site->site_config_id == $site_id) {
-        //                     $this->Session->write('current_site_slug', $site->site_config->slug);
-        //                 }
-        //             }
-        //         }
-        //         break;
-        //     }
-        // }
+        $user_site_list = [];
+        foreach ($user_sites as $site)
+            $user_site_list[$site->site_config->id] = $site->site_config->site_name;
+
+        if (!$this->Session->check('current_site_id') && !empty($user_site_list)) {
+            $site_id = array_keys($user_site_list)[0];
+
+            $this->Session->write('current_site_id', $site_id);
+            $this->Session->write('current_site_slug', $user_site_list[$site_id]);
+        }
 
         return $user_site_list;
     }
 
-    protected function isUserRole($role_key, $isOnly = false) {
-        
+
+    protected function isUserRole($role_key, $isOnly = false)
+    {
         $role = $this->Session->read('user_role');
-        
-        if (intval($role) === 0) {
-            $res = 'develop';
-        } elseif ($role < 10) {
-            $res = 'admin';
-        } elseif ($role < 20) {
-            $res = 'staff';
-        } elseif ($role < 30) {
-            $res = 'shop';
-        } elseif ($role == 80) {
-            $res = 'user_regist';
-        } else if ($role >= 90) {
-            $res = 'demo';
-        } /** 必要に応じて追加 */
-        else {
-            $res = 'staff';
-        }
+
+        if (intval($role) === 0) $res = DEVELOP;
+        elseif ($role < 10) $res = ADMIN;
+        elseif ($role < 20) $res = STAFF;
+        elseif ($role < 30) $res = SHOP;
+        elseif ($role == 80) $res = USER_REGIST;
+        else if ($role >= 90) $res = DEMO;
+        /** 必要に応じて追加 */
+        else $res = STAFF;
 
         if (!$isOnly) {
-            if ($role_key == 'admin') {
-                $role_key = array('develop', 'admin');
-            } elseif ($role_key == 'staff') {
-                $role_key = array('develop', 'admin', 'staff');
-            } elseif ($role_key == 'shop') {
-                $role_key = array('develop', 'admin', 'staff', 'shop');
-            } elseif ($role_key == 'user_regist') {
-                $role_key = array('develop', 'admin', 'staff', 'shop', 'user_regist');
-            }
+            if ($role_key == ADMIN) $role_key = [DEVELOP, ADMIN];
+            elseif ($role_key == STAFF) $role_key = [DEVELOP, ADMIN, STAFF];
+            elseif ($role_key == SHOP) $role_key = [DEVELOP, ADMIN, STAFF, SHOP];
+            elseif ($role_key == USER_REGIST) $role_key = [DEVELOP, ADMIN, STAFF, SHOP, USER_REGIST];
         }
 
-        if (in_array($res, (array)$role_key)) {
-            return true;
-        } else {
-            return false;
-        }
-
+        return (in_array($res, (array)$role_key));
     }
+
 
     /**
      * 端数処理
      * @param [type] $value [description]
      */
-    protected function Round($number, $decimal=0, $type=1) {
+    protected function Round($number, $decimal = 0, $type = 1)
+    {
 
         return Util::Round($number, $decimal, $type);
-
     }
-    protected function wareki($date) {
+
+
+    protected function wareki($date)
+    {
         return Util::wareki($date);
     }
 
-    public function getData() {
+
+    public function getData()
+    {
 
         $this->viewBuilder()->setLayout(false);
 
@@ -633,7 +645,7 @@ class AppController extends BaseController
         }
 
 
-        $query = $this->{$this->modelName}->find()->where([$this->modelName.'.' . $primaryKeyColumn => $id]);
+        $query = $this->{$this->modelName}->find()->where([$this->modelName . '.' . $primaryKeyColumn => $id]);
         if (!empty($contain)) {
             $query->contain($contain);
         }
@@ -646,14 +658,16 @@ class AppController extends BaseController
             $append_columns = str_replace(' ', '', $append_columns);
             $cols = explode(",", $append_columns);
             foreach ($cols as $col) {
-                    $data[$col] = $data->{$col};
+                $data[$col] = $data->{$col};
             }
         }
 
         $this->rest_success($data);
     }
 
-    protected function _csvOutput($th, $data, $filename) {
+
+    protected function _csvOutput($th, $data, $filename)
+    {
 
         $_serialize = ['data'];
         $_header = $th;

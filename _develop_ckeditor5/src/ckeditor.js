@@ -62,7 +62,7 @@ Editor.builtinPlugins = [
 	Link,
 	List,
 	ListStyle,
-	// MediaEmbed,
+	MediaEmbed,
 	Paragraph,
 	PasteFromOffice,
 	RemoveFormat,
@@ -102,6 +102,7 @@ Editor.defaultConfig = {
 			'undo',
 			'redo',
 			'|',
+			'mediaEmbed',
 			'htmlEmbed',
 			'sourceEditing'
 		]

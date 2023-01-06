@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -47,6 +48,18 @@ define('TEMP_USER_EXPIRE', '24hour');
 
 define('NO_IMAGE_PC', '/common/images/pc_no_image.png');
 define('NO_IMAGE_SP', '/common/images/sp_no_image.png');
+
+// ユーザー定義
+
+define('DEVELOP', 'develop');
+define('ADMIN', 'admin');
+define('STAFF', 'staff');
+define('SHOP', 'shop');
+define('USER_REGIST', 'user_regist');
+define('DEMO', 'demo');
+
+
+
 /*
  * Bootstrap CakePHP.
  *
@@ -87,13 +100,14 @@ use Cake\Utility\Security;
  * security risks. See https://github.com/josegonzalez/php-dotenv#general-security-information
  * for more information for recommended practices.
 */
- if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
-     $dotenv = new \josegonzalez\Dotenv\Loader([CONFIG . '.env']);
-     $dotenv->parse()
-         ->putenv()
-         ->toEnv()
-         ->toServer();
- }
+
+if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
+    $dotenv = new \josegonzalez\Dotenv\Loader([CONFIG . '.env']);
+    $dotenv->parse()
+        ->putenv()
+        ->toEnv()
+        ->toServer();
+}
 
 /*
  * Read configuration file and inject configuration into various
@@ -112,9 +126,7 @@ try {
 
 // 環境ごとの設定はここに書く
 if (env('SITE_MODE') == 'develop') {
-
-} elseif(env('SITE_MODE') == 'product') {
-
+} elseif (env('SITE_MODE') == 'product') {
 }
 
 /*

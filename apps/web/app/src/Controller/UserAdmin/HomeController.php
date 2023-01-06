@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
@@ -12,18 +13,13 @@
  * @since     0.2.9
  * @license   https://opensource.org/licenses/mit-license.php MIT License
  */
+
 namespace App\Controller\UserAdmin;
 
 use App\Form\LoginForm;
-use App\Model\Entity\Useradmin;
-use Cake\Core\Configure;
-use Cake\Network\Exception\ForbiddenException;
-use Cake\Network\Exception\NotFoundException;
-use Cake\View\Exception\MissingTemplateException;
-use Cake\Event\c;
-use Cake\ORM\TableRegistry;
-
+use Cake\Event\EventInterface;
 use Cake\Auth\DefaultPasswordHasher;
+
 /**
  * Static content controller
  *
@@ -33,7 +29,9 @@ use Cake\Auth\DefaultPasswordHasher;
  */
 class HomeController extends AppController
 {
-    public function initialize() : void
+
+
+    public function initialize(): void
     {
         parent::initialize();
 
@@ -42,101 +40,89 @@ class HomeController extends AppController
         $this->UseradminSites = $this->getTableLocator()->get('UseradminSites');
 
         $this->useradminId = $this->Session->read('useradminId');
-
     }
-    
-    public function beforeFilter(EventInterface $event) {
+
+
+    public function beforeFilter(EventInterface $event)
+    {
         parent::beforeFilter($event);
-        // $this->viewBuilder()->theme('Admin');
         $this->viewBuilder()->setLayout("user");
-
-        $this->setCommon();
-
     }
 
- 
 
-    public function index() {
+    public function index()
+    {
+        $hasher = new DefaultPasswordHasher();
+        // $this->viewBuilder()->setLayout("plain");
 
-        // $this->Users = $this->getTableLocator()->get('Users');
-        $this->viewBuilder()->setLayout("plain");
         $view = "login";
+        $layout = "plain";
 
         $admin = new LoginForm();
+        $r = null;
 
-        $r = array();
-        $user_type = 'user';
-        if ($this->request->is('post') || $this->request->is('put')) {
+        if ($this->request->is(['post', 'puts'])) {
             $data = $this->request->getData();
-            if (!empty($data['username']) && !empty($data['password'])) {
-                // $query = $this->User->find('all', array('conditions' => array('username' => $data['username'],
-                //                                                               'status' => 'publish'
-                //                                                              ),
-                //                                          'limit' => 1));
-                $query = $this->Useradmins->find()->where(['Useradmins.username' => $data['username'], 'Useradmins.status' => 'publish']);
-                $r = $query->first();
-                $is_login = false;
-                if ($r) {
-                    
-                    $hasher = new DefaultPasswordHasher();
-                    if ($hasher->check($data['password'], $r->password) && $r->temp_password == '') {
-                        $is_login = true;
-                        
-                    } elseif ($r->temp_password == $data['password'] ) {
-                        if ($r->temp_pass_expired == DATETIME_ZERO || $r->temp_pass_expired == '') {
-                            $is_login = true;
-                        } else {
-                            $is_login = true;
-                        }
-                    }
-                }
 
-                if ($r && $is_login) {
-                    $face_image = '';
-                    if ($r->face_image) {
-                        $face_image = $r->attaches['face_image']['s'];
-                    }
-                    $this->Session->write(array('useradminId' => $r->id,
-                        'data' => array(
-                            'name' => $r->name,
-                            'face_image' => $face_image
-                        ),
-                        'user_role' => $r->role
-                    ));
-                    $this->AdminMenu->init();
-                    $this->redirect(['action' => 'index']);
+            if (!isset($data['username']) || !isset($data['password']) || (!empty($data['username']) && !empty($data['password']))) goto CHECKSESSION;
 
-                } else {
-                    $r = false;
-                }
+            $r = $this->Useradmins->find()
+                ->where(['Useradmins.username' => $data['username'], 'Useradmins.status' => 'publish'])
+                ->first();
+
+            if (is_null($r)) {
+                $this->Flash->warning('アカウント名またはパスワードが違います', [
+                    'key' => 'login_fail',
+                    'params' => [
+                        'username' => $data['username'],
+                        'password' => $data['password']
+                    ]
+                ]);
+                goto CHECKSESSION;
             }
-            if (empty($r)) {
-                $this->Flash->set('アカウント名またはパスワードが違います');
-            }
+
+            $is_login = ($hasher->check($data['password'], $r->password) && $r->temp_password == '') || $r->temp_password == $data['password'];
+
+            if (!$is_login) goto CHECKSESSION;
+
+            $this->Session->write([
+                'useradminId' => $r->id,
+                'data' => [
+                    'name' => $r->name,
+                    'face_image' => $r->face_image ? $r->attaches['face_image']['s'] : ''
+                ],
+                'user_role' => $r->role
+            ]);
+
+            $this->AdminMenu->init();
+            return $this->redirect(['action' => 'index']);
         }
-        if (0 < $this->Session->read('useradminId')) {
-            $this->viewBuilder()->setLayout("user");
+
+        CHECKSESSION:
+
+        $is_login = ($this->Session->check('useradminId') && 0 < $this->Session->read('useradminId'));
+        if ($is_login || $this->Session->read('shopId')) {
+
+            $layout = 'user';
             $view = "index";
+            $this->setList();
 
-            if ($this->isUserRole('user_regist', true)) {
-                return $this->redirect(['prefix' => 'user_regist', 'controller' => 'home', 'action' => 'index']);
+            if ($is_login) {
+                if ($this->isUserRole('user_regist', true))
+                    return $this->redirect(['prefix' => 'user_regist', 'controller' => 'home', 'action' => 'index']);
+
+                $this->setCommon();
             }
-
-            $this->setCommon();
-
-            $this->setList();
-        } elseif ($this->Session->read('shopId')) {
-            $this->viewBuilder()->setLayout('user');
-            $view = 'index';
-            $this->setList();
         }
 
-        $this->set(compact('admin'));
-
+        $this->set('admin', $admin);
+        $this->viewBuilder()->setLayout($layout);
         $this->render($view);
     }
 
-    public function logout() {
+
+    public function logout()
+    {
         if (0 < $this->Session->read('useradminId')) {
             $this->Session->delete('useradminId');
             $this->Session->delete('role');
@@ -144,67 +130,36 @@ class HomeController extends AppController
             $this->Session->delete('current_site_slug');
             $this->Session->delete('admin_menu');
             $this->Session->destroy();
-
         }
 
         $this->redirect('/user_admin/');
     }
 
-    public function setList() {
 
-        $current_site_id = $this->Session->read('current_site_id');
-        if (!$current_site_id) {
-            $this->Flash->set('サイト権限がありません');
-            $this->logout();
-        }
+    public function setList()
+    {
 
-        
-        $list = array();
+        $list = [];
 
-        $page_configs = $this->PageConfigs->find()
-                                          ->where(['PageConfigs.site_config_id' => $current_site_id])
-                                          ->order(['PageConfigs.position' => 'ASC'])
-                                          ->all()
-                                          ->toArray();
-        $list['user_menu_list'] = [
-            'コンテンツ' => []
-        ];
-        if ($this->isUserRole('admin')) {
-            $list['user_menu_list']['設定'] = [['コンテンツ設定' => '/user_admin/page-configs']];
-        }
-        if (!empty($page_configs)) {
-            $configs = array_chunk($page_configs, 3);
-
-            foreach ($configs as $_) {
-                $menu = [];
-                foreach ($_ as $config) {
-                    $menu[$config->page_title] = '/user_admin/infos/?sch_page_id=' . $config->id;
-                }
-                $list['user_menu_list']['コンテンツ'][] = $menu;
-            }
-
-        }
-        
-
-        if (!empty($list)) {
-            $this->set(array_keys($list),$list);
-        }
+        if (!empty($list)) $this->set(array_keys($list), $list);
 
         $this->list = $list;
         return $list;
     }
 
-    public function siteChange() {
+
+    public function siteChange()
+    {
 
         $site_id = $this->request->getQuery('site');
 
-        $user_id = $this->isLogin();
+        $user_id = $this->getUserId();
 
         $config = $this->UseradminSites->find()->where(['UseradminSites.useradmin_id' => $user_id, 'UseradminSites.site_config_id' => $site_id])
-                                    ->contain(['SiteConfigs' => function($q) {
-                                        return $q->select(['slug']);
-                                    }])
-                                    ->first();
+            ->contain(['SiteConfigs' => function ($q) {
+                return $q->select(['slug']);
+            }])
+            ->first();
         if (!empty($config)) {
 
             $this->Session->write('current_site_id', $site_id);
@@ -214,7 +169,9 @@ class HomeController extends AppController
         $this->redirect(['prefix' => 'user', 'controller' => 'users', 'action' => 'index']);
     }
 
-    public function menuReload() {
+
+    public function menuReload()
+    {
         $this->AdminMenu->reload();
         return $this->redirect(['_name' => 'userTop']);
     }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -58,6 +59,7 @@ class AppController extends Controller
         //$this->loadComponent('FormProtection');
     }
 
+
     /**
      * Before render callback.
      *
@@ -69,36 +71,38 @@ class AppController extends Controller
         // Note: These defaults are just to get started quickly with development
         // and should not be used in production. You should instead set "_serialize"
         // in each action as required.
-//        if (!array_key_exists('_serialize', (array)$this->viewVars) &&
-//            in_array($this->response->getType(), ['application/json', 'application/xml'])
-//        ) {
-//            $this->set('_serialize', true);
-//        }
+        //        if (!array_key_exists('_serialize', (array)$this->viewVars) &&
+        //            in_array($this->response->getType(), ['application/json', 'application/xml'])
+        //        ) {
+        //            $this->set('_serialize', true);
+        //        }
 
         $this->set('error_messages', $this->error_messages);
 
-//        if ($this->getRequest()->getParam('prefix') === 'smt') {
-//            $this->viewBuilder()->theme('Sp');
-//        }
-//
-//        $this->getRequest()->addDetector('mob', array('env' => 'HTTP_USER_AGENT',
-//                                                 'options' => array(
-//                                                     'Android', 'AvantGo', 'BlackBerry', 'DoCoMo', 'Fennec', 'iPod', 'iPhone', 'iPad',
-//                                                     'J2ME', 'MIDP', 'NetFront', 'Nokia', 'Opera Mini', 'Opera Mobi', 'PalmOS', 'PalmSource',
-//                                                     'portalmmm', 'Plucker', 'ReqwirelessWeb', 'SonyEricsson', 'Symbian', 'UP\\.Browser',
-//                                                     'webOS', 'Windows CE', 'Windows Phone OS', 'Xiino'
-//                                                     )
-//                                                 )
-//                                    );
-//
-//        //Theme 設定
-//        $this->set('isMobile', $this->request->is('mob'));
+        //        if ($this->getRequest()->getParam('prefix') === 'smt') {
+        //            $this->viewBuilder()->theme('Sp');
+        //        }
+        //
+        //        $this->getRequest()->addDetector('mob', array('env' => 'HTTP_USER_AGENT',
+        //                                                 'options' => array(
+        //                                                     'Android', 'AvantGo', 'BlackBerry', 'DoCoMo', 'Fennec', 'iPod', 'iPhone', 'iPad',
+        //                                                     'J2ME', 'MIDP', 'NetFront', 'Nokia', 'Opera Mini', 'Opera Mobi', 'PalmOS', 'PalmSource',
+        //                                                     'portalmmm', 'Plucker', 'ReqwirelessWeb', 'SonyEricsson', 'Symbian', 'UP\\.Browser',
+        //                                                     'webOS', 'Windows CE', 'Windows Phone OS', 'Xiino'
+        //                                                     )
+        //                                                 )
+        //                                    );
+        //
+        //        //Theme 設定
+        //        $this->set('isMobile', $this->request->is('mob'));
     }
+
 
     protected function _setView($lists)
     {
         $this->set(array_keys($lists), $lists);
     }
+
 
     public function isAdminLogin()
     {
@@ -106,11 +110,13 @@ class AppController extends Controller
         return $id;
     }
 
+
     public function isUserLogin($role = 'admin')
     {
         $userid = $this->Session->read('useradminId');
         return $userid;
     }
+
 
     public function checkLogin()
     {
@@ -119,6 +125,7 @@ class AppController extends Controller
         }
     }
 
+
     public function checkUserLogin()
     {
         if (!$this->isUserLogin()) {
@@ -126,11 +133,13 @@ class AppController extends Controller
         }
     }
 
+
     /**
      * ハイアラーキゼーションと読む！（階層化という意味だ！）
      * １次元のentityデータを階層化した状態の構造にする
      */
-    public function toHierarchization($id, $entity, $options=[]) {
+    public function toHierarchization($id, $entity, $options = [])
+    {
         // $options = array_merge([
         //     'section_block_ids' => [10]
         // ], $options);
@@ -153,11 +162,11 @@ class AppController extends Controller
                 $v = $val->toArray();
 
                 // 枠ブロックの中にあるブロック以外　（枠ブロックも対象）
-                if (!$v[$sequence_id_name] || ($v[$sequence_id_name] > 0 && in_array($v['block_type'], $options['section_block_ids']) )) {
+                if (!$v[$sequence_id_name] || ($v[$sequence_id_name] > 0 && in_array($v['block_type'], $options['section_block_ids']))) {
                     $contents["contents"][$block_count] = $v;
                     $contents["contents"][$block_count]['_block_no'] = $block_count;
                 } else {
-                // 枠ブロックの中身
+                    // 枠ブロックの中身
                     if (!array_key_exists($sequence_table, $v)) {
                         continue;
                     }
@@ -195,14 +204,17 @@ class AppController extends Controller
             'contents' => $contents,
             'content_count' => $content_count
         ];
-
     }
 
-    public function getCategoryEnabled() {
+
+    public function getCategoryEnabled()
+    {
         return CATEGORY_FUNCTION_ENABLED;
     }
 
-    public function isCategoryEnabled($page_config, $mode = 'category') {
+
+    public function isCategoryEnabled($page_config, $mode = 'category')
+    {
 
         if (!$this->getCategoryEnabled()) {
             return false;
@@ -219,6 +231,7 @@ class AppController extends Controller
 
         return false;
     }
+
 
     public function isCategorySort($page_config_id)
     {
@@ -238,6 +251,7 @@ class AppController extends Controller
         return false;
     }
 
+
     /**
      * 記事がユーザーに権限のあるものかどうか
      * @param  [type]  $info_id [description]
@@ -252,7 +266,8 @@ class AppController extends Controller
             ->contain([
                 'PageConfigs' => function ($q) {
                     return $q->select(['site_config_id']);
-                }])
+                }
+            ])
             ->first();
         if (empty($info)) {
             return false;
@@ -265,6 +280,7 @@ class AppController extends Controller
 
         return true;
     }
+
 
     /**
      * ページがユーザーに権限のあるものかどうか
@@ -288,6 +304,7 @@ class AppController extends Controller
         return true;
     }
 
+
     public function isOwnCategoryByUser($category_id)
     {
         $user_id = $this->isUserLogin();
@@ -297,7 +314,8 @@ class AppController extends Controller
             ->contain([
                 'PageConfigs' => function ($q) {
                     return $q->select(['site_config_id']);
-                }])
+                }
+            ])
             ->first();
         if (empty($category)) {
             return false;
@@ -311,61 +329,19 @@ class AppController extends Controller
         return true;
     }
 
-    protected function getPrefectureList() {
+
+    protected function getPrefectureList()
+    {
         $prefectures = [
-            '北海道' => '北海道'
-            ,'青森県' => '青森県'
-            ,'岩手県' => '岩手県'
-            ,'宮城県' => '宮城県'
-            ,'秋田県' => '秋田県'
-            ,'山形県' => '山形県'
-            ,'福島県' => '福島県'
-            ,'茨城県' => '茨城県'
-            ,'栃木県' => '栃木県'
-            ,'群馬県' => '群馬県'
-            ,'埼玉県' => '埼玉県'
-            ,'千葉県' => '千葉県'
-            ,'東京都' => '東京都'
-            ,'神奈川県' => '神奈川県'
-            ,'新潟県' => '新潟県'
-            ,'富山県' => '富山県'
-            ,'石川県' => '石川県'
-            ,'福井県' => '福井県'
-            ,'山梨県' => '山梨県'
-            ,'長野県' => '長野県'
-            ,'岐阜県' => '岐阜県'
-            ,'静岡県' => '静岡県'
-            ,'愛知県' => '愛知県'
-            ,'三重県' => '三重県'
-            ,'滋賀県' => '滋賀県'
-            ,'京都府' => '京都府'
-            ,'大阪府' => '大阪府'
-            ,'兵庫県' => '兵庫県'
-            ,'奈良県' => '奈良県'
-            ,'和歌山県' => '和歌山県'
-            ,'鳥取県' => '鳥取県'
-            ,'島根県' => '島根県'
-            ,'岡山県' => '岡山県'
-            ,'広島県' => '広島県'
-            ,'山口県' => '山口県'
-            ,'徳島県' => '徳島県'
-            ,'香川県' => '香川県'
-            ,'愛媛県' => '愛媛県'
-            ,'高知県' => '高知県'
-            ,'福岡県' => '福岡県'
-            ,'佐賀県' => '佐賀県'
-            ,'長崎県' => '長崎県'
-            ,'熊本県' => '熊本県'
-            ,'大分県' => '大分県'
-            ,'宮崎県' => '宮崎県'
-            ,'鹿児島県' => '鹿児島県'
-            ,'沖縄県' => '沖縄県'
+            '北海道' => '北海道', '青森県' => '青森県', '岩手県' => '岩手県', '宮城県' => '宮城県', '秋田県' => '秋田県', '山形県' => '山形県', '福島県' => '福島県', '茨城県' => '茨城県', '栃木県' => '栃木県', '群馬県' => '群馬県', '埼玉県' => '埼玉県', '千葉県' => '千葉県', '東京都' => '東京都', '神奈川県' => '神奈川県', '新潟県' => '新潟県', '富山県' => '富山県', '石川県' => '石川県', '福井県' => '福井県', '山梨県' => '山梨県', '長野県' => '長野県', '岐阜県' => '岐阜県', '静岡県' => '静岡県', '愛知県' => '愛知県', '三重県' => '三重県', '滋賀県' => '滋賀県', '京都府' => '京都府', '大阪府' => '大阪府', '兵庫県' => '兵庫県', '奈良県' => '奈良県', '和歌山県' => '和歌山県', '鳥取県' => '鳥取県', '島根県' => '島根県', '岡山県' => '岡山県', '広島県' => '広島県', '山口県' => '山口県', '徳島県' => '徳島県', '香川県' => '香川県', '愛媛県' => '愛媛県', '高知県' => '高知県', '福岡県' => '福岡県', '佐賀県' => '佐賀県', '長崎県' => '長崎県', '熊本県' => '熊本県', '大分県' => '大分県', '宮崎県' => '宮崎県', '鹿児島県' => '鹿児島県', '沖縄県' => '沖縄県'
         ];
 
         return $prefectures;
     }
 
-    protected function token($len) {
+
+    protected function token($len)
+    {
         if ($len > 0) {
             $TOKEN_LENGTH = $len;
             $bytes = openssl_random_pseudo_bytes($TOKEN_LENGTH);

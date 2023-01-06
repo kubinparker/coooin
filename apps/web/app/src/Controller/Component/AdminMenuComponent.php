@@ -1,14 +1,10 @@
 <?php
+
 namespace App\Controller\Component;
 
 use Cake\Controller\Component;
-use Cake\Controller\ComponentRegistry;
-use Cake\Datasource\ModelAwareTrait;
-use Cake\Utility\Inflector;
 use Cake\ORM\TableRegistry;
-use Cake\Utility\Text;
 
-use App\Model\Entity\User;
 /**
  * OutputHtml component
  */
@@ -16,123 +12,105 @@ class AdminMenuComponent extends Component
 {
     public $menu_list = [];
 
-    public function initialize(array $config) :void {
 
+    public function initialize(array $config): void
+    {
         $this->Controller = $this->_registry->getController();
         $this->Session = $this->Controller->getRequest()->getSession();
-
     }
 
-    public function init() {
 
-        if ($this->Session->check('admin_menu.menu_list')) {
+    public function init()
+    {
+
+        if ($this->Session->check('admin_menu.menu_list'))
             $this->menu_list = $this->Session->read('admin_menu.menu_list');
-        } else {
+        else {
             $this->menu_list = [
                 'main' => [
                     [
-                       'title' => 'コンテンツ',
-                       'role' => [ 'role_type' => 'staff'],
-                       'buttons' => $this->setContent('main', [
-                           ['name' => '追加コンテンツ', 'link' => '/user_admin/sample'],
-                       ]),
+                        'title' => 'コンテンツ',
+                        'role' => ['role_type' => STAFF],
+                        'buttons' => $this->setContent('main'),
                     ],
                     [
                         'title' => __('各種設定'),
-                        'role' => [ 'role_type' => 'admin'],
+                        'role' => ['role_type' => ADMIN],
                         'buttons' => [
-                            ['name' => __('コンテンツ設定'), 'link' => '/user_admin/page-configs/', 'role' => ['role_type' => 'develop']],
-                            ['name' => __('定数管理'), 'link' => '/user_admin/mst-lists/', 'role' => ['role_type' => 'admin']],
-                            ['name' => __('カレンダー'), 'link' => '/user_admin/schedules/', 'role' => ['role_type' => 'admin']],
+                            ['name' => __('コンテンツ設定'), 'link' => '/user_admin/page-configs/', 'role' => ['role_type' => DEVELOP]],
+                            ['name' => __('定数管理'), 'link' => '/user_admin/mst-lists/', 'role' => ['role_type' => ADMIN]],
+                            ['name' => __('カレンダー'), 'link' => '/user_admin/schedules/', 'role' => ['role_type' => ADMIN]],
                         ]
                     ]
                 ],
                 'side' => [
                     [
-                         'title' => 'コンテンツ',
-                         'role' => [ 'role_type' => 'staff' ],
-                         'buttons' => $this->setContent('main', [['name' => '追加コンテンツ', 'link' => '/user_admin/sample']])
+                        'title' => 'コンテンツ',
+                        'role' => ['role_type' => STAFF],
+                        'buttons' => $this->setContent('main')
                     ],
                     [
                         'title' => __('各種設定'),
-                        'role' => ['role_type' => 'develop'],
+                        'role' => ['role_type' => DEVELOP],
                         'buttons' => [
-                            ['name' => __('コンテンツ設定'), 'link' => '/user_admin/page-configs/', 'role' => ['role_type' => 'develop']],
-                            ['name' => __('定数管理'), 'link' => '/user_admin/mst-lists/', 'role' => ['role_type' => 'develop']],
-                            ['name' => __('カレンダー'), 'link' => '/user_admin/schedules/', 'role' => ['role_type' => 'admin']],
-                            ['name' => 'メニューリロード', 'link' => '/user_admin/menu-reload', '']
+                            ['name' => __('コンテンツ設定'), 'link' => '/user_admin/page-configs/', 'role' => ['role_type' => DEVELOP]],
+                            ['name' => __('定数管理'), 'link' => '/user_admin/mst-lists/', 'role' => ['role_type' => DEVELOP]],
+                            ['name' => __('カレンダー'), 'link' => '/user_admin/schedules/', 'role' => ['role_type' => ADMIN]],
+                            ['name' => 'メニューリロード', 'link' => '/user_admin/menu-reload', 'position' => 'right', 'icon' => 'fas fa-sync-alt']
                         ]
-                    ],
-//                    [
-//                        'title' => __('各種設定'),
-//                        'role' => ['role_type' => 'admin', 'role_only' => true],
-//                        'buttons' => [
-//                            ['name' => __('カレンダー'), 'link' => '/user_admin/schedules/', 'role' => ['role_type' => 'admin']],
-//                        ]
-//                    ]
+                    ]
                 ]
-
             ];
 
             $this->Session->write('admin_menu.menu_list', $this->menu_list);
         }
     }
 
-    public function reload() {
+
+    public function reload()
+    {
         $this->Session->delete('admin_menu.menu_list');
         $this->init();
     }
 
-    public function setContent($type = 'main', $append_menus = []) {
-        $this->PageConfigs = TableRegistry::get('PageConfigs');
+
+    public function setContent($type = 'main', $append_menus = [])
+    {
+
+        $this->PageConfigs = TableRegistry::getTableLocator()->get('PageConfigs');
 
         $content_buttons = [];
-        $user_configs = [];
         $cond = [
+            'PageConfigs.site_config_id' => $this->Session->read('current_site_id') ?? 0,
             'is_auto_menu' => 1
         ];
 
-        // dd($cond);
         $page_configs = $this->PageConfigs->find()
-                                          // ->where(['PageConfigs.site_config_id' => $current_site_id])
-                                          ->where($cond)
-                                          ->order(['PageConfigs.position' => 'ASC'])
-                                          ->all();
-        if (!empty($page_configs)) {
-            $page_configs = $page_configs->toArray();
-            if ($type == 'main') {
-//                $configs = array_chunk($page_configs, 3);
+            ->where($cond)
+            ->order(['PageConfigs.position' => 'ASC'])
+            ->all()
+            ->toArray();
 
-                foreach ($page_configs as $config) {
-                    $menu = [
-                        'name' => $config->page_title,
-                        'link' => '/user_admin/infos/?sch_page_id=' . $config->id
-                    ];
-                    $content_buttons[] = $menu;
-                }
-            } elseif ($type == 'side') {
-                foreach ($page_configs as $config) {
-                    $menu = [
-                        'name' => $config->page_title,
-                        'subMenu' => [
-                            ['name' => __('新規登録'), 'link' => '/infos/edit/0?sch_page_id=' . $config->id],
-                            ['name' => __('一覧'), 'link' => '/infos/?sch_page_id=' . $config->id],
-                        ]
-                    ];
-                    $content_buttons[] = $menu;
-                }
-            }
-        }
+        if (!empty($page_configs) && in_array($type, ['main', 'side'], true)) {
 
-        if (!empty($append_menus)) {
-            foreach ($append_menus as $menu) {
+            foreach ($page_configs as $config) {
+                $menu = ['name' => $config->page_title];
+
+                if ($type == 'main')
+                    $menu['link'] = '/user_admin/infos/?sch_page_id=' . $config->id;
+                else
+                    $menu['subMenu'] = [
+                        ['name' => __('新規登録'), 'link' => '/infos/edit/0?sch_page_id=' . $config->id],
+                        ['name' => __('一覧'), 'link' => '/infos/?sch_page_id=' . $config->id]
+                    ];
+
                 $content_buttons[] = $menu;
             }
         }
-//dd($content_buttons);
+
+        if (!empty($append_menus))
+            foreach ($append_menus as $menu) $content_buttons[] = $menu;
 
         return $content_buttons;
     }
-
 }
-

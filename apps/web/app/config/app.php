@@ -17,7 +17,7 @@ return [
      * true: Errors and warnings shown.
      */
     'debug' => filter_var(env('DEBUG', true), FILTER_VALIDATE_BOOLEAN),
-    'convert_path' => env('CONVERT_PATH','/usr/bin/convert'),
+    'convert_path' => env('CONVERT_PATH', '/usr/bin/convert'),
 
     /*
      * Configure basic information about the application.
@@ -51,7 +51,7 @@ return [
         'namespace' => 'App',
         'encoding' => env('APP_ENCODING', 'UTF-8'),
         'defaultLocale' => env('APP_DEFAULT_LOCALE', 'ja-JP'),
-        'defaultTimezone' => env('APP_DEFAULT_TIMEZONE', 'Tokyo/Asia'),
+        'defaultTimezone' => env('APP_DEFAULT_TIMEZONE', 'UTC'),
         'base' => false,
         'dir' => 'src',
         'webroot' => 'webroot',
@@ -66,7 +66,8 @@ return [
             'templates' => [ROOT . DS . 'templates' . DS],
             'locales' => [RESOURCES . 'locales' . DS],
         ],
-//        'uploadedFilesAsObjects' => false, // formのfile属性をオブジェクトで扱わない場合はfalse
+        'headTitle' => ''
+        //        'uploadedFilesAsObjects' => false, // formのfile属性をオブジェクトで扱わない場合はfalse
     ],
 
     /*
@@ -187,7 +188,7 @@ return [
      */
     'Error' => [
         'errorLevel' => E_ALL & ~E_USER_DEPRECATED,
-//        'exceptionRenderer' => 'Cake\Error\ExceptionRenderer',
+        //        'exceptionRenderer' => 'Cake\Error\ExceptionRenderer',
         'skipLog' => [],
         'log' => true,
         'trace' => true,
