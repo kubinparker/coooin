@@ -1,1 +1,7 @@
 /.idea/
+_develop_ckeditor5
+vendor
+composer.lock
+apps/web/app/tmp
+apps/web/app/logs
+_develop_ckeditor5/package-lock.json

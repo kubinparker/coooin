@@ -1,5 +1,0 @@
-order deny,allow
-deny from all
-allow from 121.2.64.195
-allow from 121.101.85.59
-allow from 39.110.198.114
