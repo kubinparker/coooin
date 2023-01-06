@@ -2,14 +2,8 @@
 
 namespace App\Controller\UserAdmin;
 
-use Cake\Core\Configure;
-use Cake\Network\Exception\ForbiddenException;
-use Cake\Network\Exception\NotFoundException;
 use Cake\Utility\Inflector;
-use Cake\View\Exception\MissingTemplateException;
 use Cake\Event\EventInterface;
-use Cake\ORM\TableRegistry;
-use Cake\Filesystem\Folder;
 use Cake\Utility\Hash;
 
 use App\Model\Entity\Info;
@@ -30,7 +24,7 @@ class BaseInfosController extends AppController
     private $list = [];
     private $GQuery = [];
 
-    public function initialize() : void
+    public function initialize(): void
     {
         parent::initialize();
 
@@ -54,8 +48,6 @@ class BaseInfosController extends AppController
 
         $this->modelName = 'Infos';
         $this->set('ModelName', $this->modelName);
-
-
     }
 
     public function beforeFilter(EventInterface $event)
@@ -64,8 +56,6 @@ class BaseInfosController extends AppController
         $this->viewBuilder()->setLayout("user");
 
         $this->setCommon();
-
-
     }
 
     public function index()
@@ -91,12 +81,14 @@ class BaseInfosController extends AppController
 
         $page_config = $this->PageConfigs->find()
             ->where(['PageConfigs.id' => $page_config_id])
-            ->contain(['SiteConfigs' => function ($q) {
-                return $q->select('slug');
-            },
+            ->contain([
+                'SiteConfigs' => function ($q) {
+                    return $q->select('slug');
+                },
                 'PageConfigExtensions' => function ($q2) {
                     return $q2->where(['PageConfigExtensions.status' => 'publish'])->order(['PageConfigExtensions.position' => 'ASC']);
-                }])
+                }
+            ])
             ->first();
         $preview_slug_dir = '';
         $page_title = '';
@@ -124,12 +116,12 @@ class BaseInfosController extends AppController
                         [
                             'Categories.page_config_id' => $query['sch_page_id'],
                             'Categories.id' => $_parent_id,
-                        ])->first();
+                        ]
+                    )->first();
                     if (!empty($tmp)) {
                         $_parent_id = $tmp->parent_category_id;
                         $pankuzu_category[] = $tmp;
                     }
-
                 } while (!empty($tmp));
                 // 
                 $category_cond = ['Categories.page_config_id' => $page_config_id];
@@ -173,7 +165,6 @@ class BaseInfosController extends AppController
                     $category_list = $tmp->toArray();
                 }
             }
-
         }
 
         // ページ設定拡張
@@ -462,7 +453,6 @@ class BaseInfosController extends AppController
             if (empty($this->request->getData())) {
                 $this->Flash->error('アップロード出来る容量を超えました');
                 return $this->redirect(['action' => 'edit', $id, '?' => $query]);
-
             }
 
             $this->request = $this->request->withData('page_config_id', $sch_page_id);
@@ -477,7 +467,7 @@ class BaseInfosController extends AppController
                 $position = 0;
 
                 foreach ($this->request->getData('info_contents') as $k => $v) {
-//                    $this->request->data['info_contents'][$k]['position'] = ++$position;
+                    //                    $this->request->data['info_contents'][$k]['position'] = ++$position;
                     $this->request = $this->request->withData("info_contents.{$k}.position", ++$position);
                 }
             }
@@ -496,7 +486,7 @@ class BaseInfosController extends AppController
             if (empty($this->request->getData('_start_at_time'))) {
                 $start_date .= ' ' . $now->format('H:i:00');
             } else {
-//                $start_date .= ' ' . $this->request->getData('_start_time.hour') . ':' . $this->request->getData('_start_time.minute');
+                //                $start_date .= ' ' . $this->request->getData('_start_time.hour') . ':' . $this->request->getData('_start_time.minute');
                 $start_date .= ' ' . $this->request->getData('_start_at_time');
             }
             $this->request = $this->request->withData('start_at', $start_date);
@@ -527,7 +517,7 @@ class BaseInfosController extends AppController
                 foreach ($this->request->getData('info_append_items') as $ap_num => $i_append_item) {
                     // 必須でないリスト対策
                     if (empty($i_append_item['value_int'])) {
-//                        $this->request->data['info_append_items'][$ap_num]['value_int'] = 0;
+                        //                        $this->request->data['info_append_items'][$ap_num]['value_int'] = 0;
                         $this->request = $this->request->withData("info_append_items.{$ap_num}.value_int", 0);
                     }
                 }
@@ -633,7 +623,6 @@ class BaseInfosController extends AppController
             if (method_exists(get_class($this), 'savingHook' . $page_slug)) {
                 $this->request = $this->request->withParsedBody($this->{'savingHook' . $page_slug}($page_config, $this->request->getData()));
             }
-
         } else {
             if (!$id) {
                 $options['get_callback'] = function ($data) use ($query) {
@@ -690,7 +679,6 @@ class BaseInfosController extends AppController
             $editor_old = $entity->is_old;
         }
         $this->set(compact('editor_old'));
-
     }
 
     public function delete($id, $type, $columns = null)
@@ -830,7 +818,6 @@ class BaseInfosController extends AppController
         if (method_exists(get_class($this), 'changedStatusHook' . $page_slug)) {
             $this->{'changedStatusHook' . $page_slug}($data);
         }
-
     }
 
     public function setList()
@@ -933,7 +920,6 @@ class BaseInfosController extends AppController
         $datas = $entity->toArray();
 
         $this->set(compact('rownum', 'datas'));
-
     }
 
     public function addTag()
@@ -949,7 +935,6 @@ class BaseInfosController extends AppController
         //                      ->first();
 
         $this->set(compact('tag', 'num'));
-
     }
 
     private function content_delete($id, $del_id)
@@ -961,9 +946,12 @@ class BaseInfosController extends AppController
 
         if (array_key_exists((int)$e->block_type, Info::BLOCK_TYPE_WAKU_LIST) && $e->section_sequence_id > 0) {
             $sub_delete_ids = $this->InfoContents->find()
-                ->where(['InfoContents.section_sequence_id' => $e->section_sequence_id,
+                ->where(
+                    [
+                        'InfoContents.section_sequence_id' => $e->section_sequence_id,
                         'InfoContents.id !=' => $del_id,
-                        'InfoContents.info_id' => $id]
+                        'InfoContents.info_id' => $id
+                    ]
                 )
                 ->extract('id');
         }
@@ -993,17 +981,14 @@ class BaseInfosController extends AppController
 
     public function htmlUpdateAll($page_config_id, $category_id = 0)
     {
-
     }
 
     public function _htmlDelete($info_id, $entity)
     {
-
     }
 
     public function _htmlUpdate($info_id)
     {
-
     }
 
 
@@ -1182,12 +1167,11 @@ class BaseInfosController extends AppController
             ->order(['cnt' => 'DESC']);
 
         $this->modelName = 'Tags';
-        $this->_lists($cond, ['limit' => 10,
+        $this->_lists($cond, [
+            'limit' => 10,
             'order' => ['Tags.position' => 'ASC'],
             'sql_query' => $sql
         ]);
-
-
     }
 
     public function distAttachmentCopy($id)
@@ -1240,7 +1224,6 @@ class BaseInfosController extends AppController
             // $this->_delete($prev->id, 'content', null, ['redirect' => false]);
             $this->Infos->delete($prev);
         }
-
     }
 
     private function deletePreviewAttachment()
@@ -1349,13 +1332,10 @@ class BaseInfosController extends AppController
             ])
                 ->order(['MstLists.position' => 'ASC'])
                 ->toArray();
-
-
         } else {
             $append_datas = $this->MstLists->find()
                 ->order(['MstLists.position' => 'ASC'])
                 ->toArray();
-
         }
 
         if (empty($append_datas)) {
@@ -1438,7 +1418,6 @@ class BaseInfosController extends AppController
                     // 追加項目に対して個別のバリデーションを入れたければユニークとなるslugを設定しここで記載
                     $r = $this->additionalValidate($data, $item, $append_for_additional_list, $page_config->slug);
                 }
-
             }
             if (!$r) { //項目チェックがfalseならその時点でfalseを返す
                 return $valid;
@@ -1557,13 +1536,17 @@ class BaseInfosController extends AppController
             if (in_array($append['value_type'], [AppendItem::TYPE_TEXTAREA, AppendItem::TYPE_TEXT,])) {
                 $entity->setErrors([
                     "{$slug}.{$append['slug']}" => [
-                        'notempty' => '入力してください']]);
+                        'notempty' => '入力してください'
+                    ]
+                ]);
             }
 
             if (in_array($append['value_type'], [AppendItem::TYPE_RADIO, AppendItem::TYPE_LIST, AppendItem::TYPE_IMAGE, AppendItem::TYPE_FILE])) {
                 $entity->setErrors([
                     "{$slug}.{$append['slug']}" => [
-                        'notempty' => '選択してください']]);
+                        'notempty' => '選択してください'
+                    ]
+                ]);
             }
         }
 
@@ -1593,7 +1576,9 @@ class BaseInfosController extends AppController
                         $valid = false;
                         $entity->setErrors([
                             "{$slug}.{$append_slug}" => [
-                                'checkurl' => '全角カタカナで入力してください']]);
+                                'checkurl' => '全角カタカナで入力してください'
+                            ]
+                        ]);
                     }
                 }
             }
@@ -1679,5 +1664,4 @@ class BaseInfosController extends AppController
         }
         return array_values($list);
     }
-
 }
