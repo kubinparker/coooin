@@ -34,6 +34,8 @@ class AppController extends Controller
     public $Session = null;
     public $error_messages;
 
+    public $head_description = '在庫管理システム、WMS（倉庫管理システム）ならアトムエンジニアリング。物流・製造業の現場を改善し続けて30年の実績と確かなソリューションでお客様の業務改善を強力にサポート。';
+
     /**
      * Initialization hook method.
      *
@@ -49,8 +51,15 @@ class AppController extends Controller
 
         $this->loadComponent('RequestHandler');
         $this->loadComponent('Flash');
-
+        $this->setHeadTitle();
         $this->Session = $this->getRequest()->getSession();
+
+        $this->viewBuilder()->setLayout(null);
+
+        $this->is_preview = $this->isUserLogin() && $this->request->getQuery('preview') == 'on';
+
+        $this->set('__description__', $this->head_description);
+        $this->set('body_class', '');
 
         /*
          * Enable the following component for recommended CakePHP form protection settings.
@@ -111,7 +120,7 @@ class AppController extends Controller
     }
 
 
-    public function isUserLogin($role = 'admin')
+    public function isUserLogin()
     {
         $userid = $this->Session->read('useradminId');
         return $userid;
@@ -349,5 +358,26 @@ class AppController extends Controller
         } else {
             return '';
         }
+    }
+
+
+    protected function setHeadTitle($title = Null, $isFull = False)
+    {
+        $_title = \Cake\Core\Configure::read('App.headTitle');
+        if ($title) {
+            $title = is_array($title) ? implode(' | ', $title) : $title;
+            $_title = $isFull ? $title : __('{0} | {1}', [$title, $_title]);
+        }
+        $this->set('__title__', $_title);
+        return $_title;
+    }
+
+
+    protected function checkLang()
+    {
+        $url = $this->request->getRequestTarget();
+        $split_url = explode('/', $url);
+        $this->set('is_en', isset($split_url[1]) && $split_url[1] == 'en');
+        return isset($split_url[1]) && $split_url[1] == 'en';
     }
 }

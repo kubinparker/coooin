@@ -53,7 +53,6 @@ class HomeController extends AppController
     public function index()
     {
         $hasher = new DefaultPasswordHasher();
-        // $this->viewBuilder()->setLayout("plain");
 
         $view = "login";
         $layout = "plain";
@@ -61,10 +60,10 @@ class HomeController extends AppController
         $admin = new LoginForm();
         $r = null;
 
-        if ($this->request->is(['post', 'puts'])) {
+        if ($this->request->is(['post', 'put'])) {
             $data = $this->request->getData();
 
-            if (!isset($data['username']) || !isset($data['password']) || (!empty($data['username']) && !empty($data['password']))) goto CHECKSESSION;
+            if (!isset($data['username']) || !isset($data['password']) || empty($data['username']) || empty($data['password'])) goto CHECKSESSION;
 
             $r = $this->Useradmins->find()
                 ->where(['Useradmins.username' => $data['username'], 'Useradmins.status' => 'publish'])

@@ -20,9 +20,9 @@
 		}
 	</style>
 </head>
+<?= $this->Flash->render('login_fail') ?>
 
 <body>
-	<?= $this->Flash->render('login_fail') ?>
 	<div id="container">
 		<div id="content">
 			<div class="title-area"></div>

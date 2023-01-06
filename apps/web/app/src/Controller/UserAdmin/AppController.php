@@ -524,9 +524,9 @@ class AppController extends BaseController
     }
 
 
-    public function getUserId($role = )
+    public function getUserId()
     {
-        return $this->isUserLogin($role);
+        return $this->isUserLogin();
     }
 
 
